@@ -1,6 +1,6 @@
-import { OrbitControls, RoundedBox, Text } from "@react-three/drei"
+import { Grid, OrbitControls, RoundedBox, Sphere, Text } from "@react-three/drei"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import * as THREE from "three"
 import "./App.css"
 import { FrostedGlassMaterial } from "./materials/FrostedGlassMaterial"
@@ -34,6 +34,57 @@ function useWindowSize() {
 }
 
 // ================================
+// Scattered Spheres
+// ================================
+
+interface ScatteredSpheresProps {
+    count?: number
+    minRadius?: number
+    maxRadius?: number
+    minSize?: number
+    maxSize?: number
+    color?: string
+    opacity?: number
+}
+
+const ScatteredSpheres = ({
+    count = 50,
+    minRadius = 8,
+    maxRadius = 15,
+    minSize = 0.1,
+    maxSize = 0.5,
+    color = "#ffffff",
+    opacity = 0.6,
+}: ScatteredSpheresProps) => {
+    const spheres = useMemo(() => {
+        return Array.from({ length: count }, () => ({
+            position: [
+                (Math.random() - 0.5) * 2 * maxRadius,
+                (Math.random() - 0.5) * 10, // Vertical spread
+                (Math.random() - 0.5) * 2 * maxRadius,
+            ],
+            size: minSize + Math.random() * (maxSize - minSize),
+        }))
+    }, [count, minRadius, maxRadius, minSize, maxSize])
+
+    return (
+        <group>
+            {spheres.map((sphere: any, i: number) => (
+                <Sphere key={i} args={[sphere.size, 16, 16]} position={sphere.position}>
+                    <meshStandardMaterial
+                        color={color}
+                        transparent={true}
+                        opacity={opacity}
+                        roughness={0.7}
+                        metalness={0.3}
+                    />
+                </Sphere>
+            ))}
+        </group>
+    )
+}
+
+// ================================
 // 3D Components
 // ================================
 
@@ -59,19 +110,6 @@ function Card({
 }: CardProps) {
     const [hovered, setHovered] = useState(false)
     const [active, setActive] = useState(false)
-
-    // Animation
-    useFrame(({ clock }) => {
-        // Add subtle floating animation
-        if (hovered) {
-            const time = clock.getElapsedTime()
-            const hoverEffect = Math.sin(time * 3) * 0.1
-            // Update position with hover effect
-            if (ref.current) {
-                ref.current.position.y = position[1] + hoverEffect * 0.5
-            }
-        }
-    })
 
     const ref = useRef<THREE.Mesh>(null)
 
@@ -224,9 +262,9 @@ function ThreeScene() {
                 return
             }
 
-            // Apply easing to the rotation
-            const easingFactor = easeOutQuart(Math.min(1, delta * 5)) // Adjust the multiplier for speed
-            const newRotation = currentRotation + diff * easingFactor
+            // Apply easing to the rotation (slowed down by reducing the multiplier)
+            const easingFactor = easeOutQuart(Math.min(1, delta * 2)) // Reduced from 5 to 2 to slow down
+            const newRotation = currentRotation + diff * (easingFactor * 0.7) // Further reduced speed by 50%
 
             // Update the current rotation
             setCurrentRotation(newRotation)
@@ -246,6 +284,31 @@ function ThreeScene() {
             <ambientLight intensity={0.5} />
             <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
             <pointLight position={[0, 5, 5]} intensity={0.5} />
+
+            {/* Grid Helper */}
+            <Grid
+                position={[0, 0, 0]}
+                args={[20, 20]}
+                cellSize={1}
+                cellThickness={0.5}
+                cellColor="#6f6f6f"
+                sectionSize={5}
+                sectionThickness={1}
+                sectionColor="#9d4b4b"
+                fadeDistance={30}
+                fadeStrength={1}
+            />
+
+            {/* Background spheres */}
+            <ScatteredSpheres
+                count={100}
+                minRadius={8}
+                maxRadius={20}
+                minSize={0.2}
+                maxSize={0.8}
+                color="#a5b4fc"
+                opacity={0.4}
+            />
 
             <group ref={groupRef} position={[0, 0, -5]}>
                 {cards.map((card, i) => {
@@ -269,10 +332,10 @@ function ThreeScene() {
             </group>
 
             <OrbitControls
-                enablePan={false}
-                enableZoom={false}
-                enableRotate={false}
-                enableDamping={false}
+                enablePan={true}
+                enableZoom={true}
+                enableRotate={true}
+                enableDamping={true}
             />
         </>
     )
