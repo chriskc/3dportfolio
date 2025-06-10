@@ -1,4 +1,4 @@
-import { OrbitControls, Text } from "@react-three/drei"
+import { OrbitControls, RoundedBox, Text } from "@react-three/drei"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
@@ -83,12 +83,13 @@ function Card({
             onPointerOver={() => setHovered(true)}
             onPointerOut={() => setHovered(false)}
             scale={hovered ? 1.05 : 1}>
-            <planeGeometry args={[2.5, 3.5]} />
-            <meshStandardMaterial
-                color={hovered ? hoverColor : color}
-                metalness={0.2}
-                roughness={0.5}
-            />
+            <RoundedBox args={[2.5, 3.5, 0.5]} radius={0.1} smoothness={4} position={[0, 0, 0]}>
+                <meshStandardMaterial
+                    color={hovered ? hoverColor : color}
+                    metalness={0.2}
+                    roughness={0.5}
+                />
+            </RoundedBox>
 
             {/* Card content */}
             <group position={[0, 0, 0.01]}>
@@ -323,8 +324,10 @@ export default function App() {
                     width,
                     height,
                     display: "block",
+                    backgroundColor: "white",
                 }}
                 camera={cameraConfig}>
+                ,
                 <ThreeScene />
             </Canvas>
         </div>
