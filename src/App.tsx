@@ -3,6 +3,7 @@ import { Canvas, useFrame } from "@react-three/fiber"
 import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import "./App.css"
+import { FrostedGlassMaterial } from "./materials/FrostedGlassMaterial"
 
 // ================================
 // Custom Hooks
@@ -84,11 +85,7 @@ function Card({
             onPointerOut={() => setHovered(false)}
             scale={hovered ? 1.05 : 1}>
             <RoundedBox args={[2.5, 3.5, 0.5]} radius={0.1} smoothness={4} position={[0, 0, 0]}>
-                <meshStandardMaterial
-                    color={hovered ? hoverColor : color}
-                    metalness={0.2}
-                    roughness={0.5}
-                />
+                <FrostedGlassMaterial />
             </RoundedBox>
 
             {/* Card content */}
