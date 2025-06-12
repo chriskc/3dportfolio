@@ -1,8 +1,7 @@
+import { MeshTransmissionMaterial, RoundedBox, Text } from "@react-three/drei"
 import { useControls } from "leva"
-import { useState, useRef } from "react"
+import { useRef, useState } from "react"
 import * as THREE from "three"
-import { RoundedBox, Text } from "@react-three/drei"
-import { MeshTransmissionMaterial } from "@react-three/drei"
 
 interface CardProps {
     position: [number, number, number]
@@ -14,6 +13,7 @@ interface CardProps {
     width: number
     height: number
     depth: number
+    index: number
 }
 
 /**
@@ -36,16 +36,19 @@ export function Card({
     const ref = useRef<THREE.Mesh>(null)
 
     const materialProps = useControls("Material", {
-        thickness: { value: 0.5, min: 0, max: 10, step: 0.1 },
-        roughness: { value: 0.2, min: 0, max: 1, step: 0.01 },
-        transmission: { value: 0.8, min: 0, max: 1, step: 0.01 },
-        ior: { value: 1.5, min: 1, max: 2.33, step: 0.01 },
-        chromaticAberration: { value: 0.1, min: 0, max: 1, step: 0.01 },
-        anisotropy: { value: 0.1, min: 0, max: 1, step: 0.01 },
-        distortion: { value: 0.1, min: 0, max: 1, step: 0.01 },
+        thickness: { value: 0.2, min: 0, max: 10, step: 0.01 },
+        roughness: { value: 0.0, min: 0, max: 1, step: 0.01 },
+        transmission: { value: 1.0, min: 0, max: 1, step: 0.01 },
+        ior: { value: 1.2, min: 1, max: 2.33, step: 0.01 },
+        chromaticAberration: { value: 0.02, min: 0, max: 1, step: 0.01 },
+        anisotropy: { value: 0.2, min: 0, max: 1, step: 0.01 },
+        distortion: { value: 0.05, min: 0, max: 1, step: 0.01 },
         distortionScale: { value: 0.1, min: 0, max: 1, step: 0.01 },
         temporalDistortion: { value: 0.1, min: 0, max: 1, step: 0.01 },
-        color: { value: color },
+        color: { value: hovered ? hoverColor : color },
+        backside: { value: true },
+        backsideThickness: { value: 0.3 },
+        backsideColor: { value: hovered ? hoverColor : color },
     })
 
     return (
@@ -66,25 +69,33 @@ export function Card({
             </RoundedBox>
 
             {/* Card content */}
-            <group position={[0, 0, 0.01]}>
+            <group position={[0, 0, depth / 2 + 0.01]}>
                 <Text
-                    position={[0, 1, 0]}
+                    position={[0, 0.8, 0]}
                     fontSize={0.3}
                     color="white"
                     anchorX="center"
-                    anchorY="middle">
+                    anchorY="middle"
+                    outlineWidth={0.01}
+                    outlineColor="rgba(0,0,0,0.5)"
+                    outlineOpacity={0.5}
+                    fontWeight="bold"
+                    letterSpacing={0.03}>
                     {title}
                 </Text>
                 <Text
                     position={[0, 0, 0]}
                     fontSize={0.15}
-                    color="#e0e7ff"
-                    maxWidth={2}
-                    lineHeight={1.2}
+                    color="rgba(255,255,255,0.9)"
+                    maxWidth={width * 0.9}
+                    lineHeight={1.4}
                     letterSpacing={0.02}
                     textAlign="center"
                     anchorX="center"
-                    anchorY="middle">
+                    anchorY="middle"
+                    outlineWidth={0.005}
+                    outlineColor="rgba(0,0,0,0.3)"
+                    outlineOpacity={0.5}>
                     {description}
                 </Text>
             </group>

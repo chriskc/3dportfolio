@@ -119,14 +119,8 @@ interface Controls {
 }
 
 function ThreeScene({ controls }: { controls: Controls }) {
-    // Destructure controls
+    // Destructure only the controls we need
     const {
-        bgColor,
-        sphereColor,
-        sphereOpacity,
-        sphereCount,
-        sphereMinSize,
-        sphereMaxSize,
         cardWidth,
         cardHeight,
         cardDepth,
@@ -136,55 +130,55 @@ function ThreeScene({ controls }: { controls: Controls }) {
     const groupRef = useRef<THREE.Group>(null)
     const scrollTimeout = useRef<number | null>(null) // Using number | null type for setTimeout return value
 
-    // Card data
+    // Card data with new color scheme
     const cards = [
         {
             id: 1,
-            color: "#3b82f6",
-            hoverColor: "#60a5fa",
-            title: "Card 1",
+            color: "#FF2D91",  // Pink/Magenta
+            hoverColor: "#FF6BB5", // Lighter Pink
+            title: "Project One",
             description:
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                "A cutting-edge web application built with modern technologies to solve real-world problems.",
         },
         {
             id: 2,
-            color: "#10b981",
-            hoverColor: "#34d399",
-            title: "Card 2",
+            color: "#9D4EDD",  // Purple
+            hoverColor: "#B77DFF", // Lighter Purple
+            title: "Project Two",
             description:
-                "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+                "An interactive data visualization platform that makes complex data easy to understand.",
         },
         {
             id: 3,
-            color: "#8b5cf6",
-            hoverColor: "#a78bfa",
-            title: "Card 3",
+            color: "#7D26CD",  // Deep Purple
+            hoverColor: "#9B51E0", // Lighter Deep Purple
+            title: "Project Three",
             description:
-                "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+                "Mobile-first responsive design that works seamlessly across all devices and screen sizes.",
         },
         {
             id: 4,
-            color: "#ec4899",
-            hoverColor: "#f472b6",
-            title: "Card 4",
+            color: "#1E90FF",  // Blue
+            hoverColor: "#4DABFF", // Lighter Blue
+            title: "Project Four",
             description:
-                "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                "A full-stack application with real-time updates and modern authentication.",
         },
         {
             id: 5,
-            color: "#f59e0b",
-            hoverColor: "#fbbf24",
-            title: "Card 5",
+            color: "#FF2D91",  // Pink/Magenta
+            hoverColor: "#FF6BB5", // Lighter Pink
+            title: "Project Five",
             description:
-                "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
+                "An e-commerce platform with secure payment processing and inventory management.",
         },
         {
             id: 6,
-            color: "#6366f1",
-            hoverColor: "#818cf8",
-            title: "Card 6",
+            color: "#9D4EDD",  // Purple
+            hoverColor: "#B77DFF", // Lighter Purple
+            title: "Project Six",
             description:
-                "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos.",
+                "A social media dashboard with analytics and user engagement metrics.",
         },
     ]
 
@@ -282,24 +276,26 @@ function ThreeScene({ controls }: { controls: Controls }) {
             />
 
             <group ref={groupRef} position={[0, 0, -5]}>
-                {cards.map((card, i) => {
+                {cards.map((card, index) => {
                     // Distribute cards in a circle
-                    const angle = (i / cards.length) * Math.PI * 2
+                    const angle = (index / cards.length) * Math.PI * 2
+                    const radius = 8 // Fixed radius for the circle
                     const x = Math.sin(angle) * radius
                     const z = Math.cos(angle) * radius
 
                     return (
                         <Card
                             key={card.id}
+                            index={index}
                             position={[x, 0, z]}
-                            rotation={[0, Math.PI + angle, 0]} // Make cards face the center
+                            rotation={[0, Math.PI + angle, 0]} // Face the center
                             color={card.color}
                             hoverColor={card.hoverColor}
                             title={card.title}
                             description={card.description}
-                            width={controls.cardWidth}
-                            height={controls.cardHeight}
-                            depth={controls.cardDepth}
+                            width={cardWidth}
+                            height={cardHeight}
+                            depth={cardDepth}
                         />
                     )
                 })}
