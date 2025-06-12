@@ -1,9 +1,16 @@
-import { Grid, OrbitControls, RoundedBox, Sphere, Text } from "@react-three/drei"
+import {
+    Grid,
+    MeshTransmissionMaterial,
+    OrbitControls,
+    RoundedBox,
+    Sphere,
+    Text,
+} from "@react-three/drei"
 import { Canvas, useFrame } from "@react-three/fiber"
+import { useControls } from "leva"
 import { useEffect, useMemo, useRef, useState } from "react"
 import * as THREE from "three"
 import "./App.css"
-import { FrostedGlassMaterial } from "./materials/FrostedGlassMaterial"
 
 // ================================
 // Custom Hooks
@@ -113,6 +120,19 @@ function Card({
 
     const ref = useRef<THREE.Mesh>(null)
 
+    const materialProps = useControls({
+        thickness: { value: 0.5, min: 0, max: 10, step: 0.1 },
+        roughness: { value: 0.2, min: 0, max: 1, step: 0.01 },
+        transmission: { value: 0.8, min: 0, max: 1, step: 0.01 },
+        ior: { value: 1.5, min: 1, max: 2.33, step: 0.01 },
+        chromaticAberration: { value: 0.1, min: 0, max: 1, step: 0.01 },
+        anisotropy: { value: 0.1, min: 0, max: 1, step: 0.01 },
+        distortion: { value: 0.1, min: 0, max: 1, step: 0.01 },
+        distortionScale: { value: 0.1, min: 0, max: 1, step: 0.01 },
+        temporalDistortion: { value: 0.1, min: 0, max: 1, step: 0.01 },
+        color: { value: color },
+    })
+
     return (
         <mesh
             ref={ref}
@@ -123,7 +143,7 @@ function Card({
             onPointerOut={() => setHovered(false)}
             scale={hovered ? 1.05 : 1}>
             <RoundedBox args={[2.5, 3.5, 0.5]} radius={0.1} smoothness={4} position={[0, 0, 0]}>
-                <FrostedGlassMaterial />
+                <MeshTransmissionMaterial {...materialProps} />
             </RoundedBox>
 
             {/* Card content */}
@@ -347,6 +367,16 @@ function ThreeScene() {
 
 export default function App() {
     const { width, height } = useWindowSize()
+    const cameraRef = useRef<THREE.PerspectiveCamera>(null)
+
+    // Update camera aspect ratio on window resize
+    useEffect(() => {
+        if (!cameraRef.current) return
+        cameraRef.current.aspect = width / height
+        cameraRef.current.updateProjectionMatrix()
+    }, [width, height])
+
+    console.log(cameraRef)
 
     // Camera configuration - positioned to view the cards
     const cameraConfig = {
@@ -356,7 +386,6 @@ export default function App() {
         near: 0.1,
         far: 1000,
         up: [0, 1, 0] as [number, number, number],
-        // lookAt: [0, 0, 0] as [number, number, number],
     }
 
     // Prevent default scroll behavior
@@ -381,13 +410,16 @@ export default function App() {
             <Canvas
                 gl={{ antialias: true }}
                 style={{
-                    width,
-                    height,
+                    width: "100%",
+                    height: "100%",
                     display: "block",
                     backgroundColor: "white",
                 }}
-                camera={cameraConfig}>
-                ,
+                camera={cameraConfig}
+                onCreated={({ camera }) => {
+                    // @ts-ignore
+                    cameraRef.current = camera
+                }}>
                 <ThreeScene />
             </Canvas>
         </div>
