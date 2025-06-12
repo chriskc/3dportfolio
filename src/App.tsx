@@ -1,13 +1,10 @@
 import {
     Grid,
-    MeshTransmissionMaterial,
     OrbitControls,
-    RoundedBox,
     Sphere,
-    Text,
 } from "@react-three/drei"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { useControls } from "leva"
+import { folder, useControls } from "leva"
 import { useEffect, useMemo, useRef, useState } from "react"
 import * as THREE from "three"
 import "./App.css"
@@ -94,84 +91,7 @@ const ScatteredSpheres = ({
 // ================================
 // 3D Components
 // ================================
-
-interface CardProps {
-    position: [number, number, number]
-    rotation?: [number, number, number]
-    color: string
-    hoverColor: string
-    title: string
-    description: string
-}
-
-/**
- * A simple 2D card component
- */
-function Card({
-    position,
-    rotation = [0, 0, 0],
-    color,
-    hoverColor,
-    title,
-    description,
-}: CardProps) {
-    const [hovered, setHovered] = useState(false)
-    const [active, setActive] = useState(false)
-
-    const ref = useRef<THREE.Mesh>(null)
-
-    const materialProps = useControls({
-        thickness: { value: 0.5, min: 0, max: 10, step: 0.1 },
-        roughness: { value: 0.2, min: 0, max: 1, step: 0.01 },
-        transmission: { value: 0.8, min: 0, max: 1, step: 0.01 },
-        ior: { value: 1.5, min: 1, max: 2.33, step: 0.01 },
-        chromaticAberration: { value: 0.1, min: 0, max: 1, step: 0.01 },
-        anisotropy: { value: 0.1, min: 0, max: 1, step: 0.01 },
-        distortion: { value: 0.1, min: 0, max: 1, step: 0.01 },
-        distortionScale: { value: 0.1, min: 0, max: 1, step: 0.01 },
-        temporalDistortion: { value: 0.1, min: 0, max: 1, step: 0.01 },
-        color: { value: color },
-    })
-
-    return (
-        <mesh
-            ref={ref}
-            position={position}
-            rotation={rotation}
-            onClick={() => setActive(!active)}
-            onPointerOver={() => setHovered(true)}
-            onPointerOut={() => setHovered(false)}
-            scale={hovered ? 1.05 : 1}>
-            <RoundedBox args={[2.5, 3.5, 0.5]} radius={0.1} smoothness={4} position={[0, 0, 0]}>
-                <MeshTransmissionMaterial {...materialProps} />
-            </RoundedBox>
-
-            {/* Card content */}
-            <group position={[0, 0, 0.01]}>
-                <Text
-                    position={[0, 1, 0]}
-                    fontSize={0.3}
-                    color="white"
-                    anchorX="center"
-                    anchorY="middle">
-                    {title}
-                </Text>
-                <Text
-                    position={[0, 0, 0]}
-                    fontSize={0.15}
-                    color="#e0e7ff"
-                    maxWidth={2}
-                    lineHeight={1.2}
-                    letterSpacing={0.02}
-                    textAlign="center"
-                    anchorX="center"
-                    anchorY="middle">
-                    {description}
-                </Text>
-            </group>
-        </mesh>
-    )
-}
+import { Card } from "./components/Card"
 
 // ================================
 // Scene Setup
@@ -185,7 +105,32 @@ function easeOutQuart(x: number): number {
     return 1 - Math.pow(1 - x, 4)
 }
 
-function ThreeScene() {
+// Interface for our controls
+interface Controls {
+    bgColor: string
+    sphereColor: string
+    sphereOpacity: number
+    sphereCount: number
+    sphereMinSize: number
+    sphereMaxSize: number
+    cardWidth: number
+    cardHeight: number
+    cardDepth: number
+}
+
+function ThreeScene({ controls }: { controls: Controls }) {
+    // Destructure controls
+    const {
+        bgColor,
+        sphereColor,
+        sphereOpacity,
+        sphereCount,
+        sphereMinSize,
+        sphereMaxSize,
+        cardWidth,
+        cardHeight,
+        cardDepth,
+    } = controls
     const [targetRotation, setTargetRotation] = useState(0)
     const [currentRotation, setCurrentRotation] = useState(0)
     const groupRef = useRef<THREE.Group>(null)
@@ -197,43 +142,49 @@ function ThreeScene() {
             id: 1,
             color: "#3b82f6",
             hoverColor: "#60a5fa",
-            title: "Front",
-            description: "This is the front card",
+            title: "Card 1",
+            description:
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
         },
         {
             id: 2,
             color: "#10b981",
             hoverColor: "#34d399",
-            title: "Right",
-            description: "This is the right card",
+            title: "Card 2",
+            description:
+                "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
         },
         {
             id: 3,
             color: "#8b5cf6",
             hoverColor: "#a78bfa",
-            title: "Back",
-            description: "This is the back card",
+            title: "Card 3",
+            description:
+                "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
         },
         {
             id: 4,
             color: "#ec4899",
             hoverColor: "#f472b6",
-            title: "Left",
-            description: "This is the left card",
+            title: "Card 4",
+            description:
+                "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
         },
         {
             id: 5,
             color: "#f59e0b",
             hoverColor: "#fbbf24",
-            title: "Top",
-            description: "This is the top card",
+            title: "Card 5",
+            description:
+                "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
         },
         {
             id: 6,
             color: "#6366f1",
             hoverColor: "#818cf8",
-            title: "Bottom",
-            description: "This is the bottom card",
+            title: "Card 6",
+            description:
+                "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos.",
         },
     ]
 
@@ -321,13 +272,13 @@ function ThreeScene() {
 
             {/* Background spheres */}
             <ScatteredSpheres
-                count={100}
+                count={controls.sphereCount}
                 minRadius={8}
                 maxRadius={20}
-                minSize={0.2}
-                maxSize={0.8}
-                color="#a5b4fc"
-                opacity={0.4}
+                minSize={controls.sphereMinSize}
+                maxSize={controls.sphereMaxSize}
+                color={controls.sphereColor}
+                opacity={controls.sphereOpacity}
             />
 
             <group ref={groupRef} position={[0, 0, -5]}>
@@ -346,6 +297,9 @@ function ThreeScene() {
                             hoverColor={card.hoverColor}
                             title={card.title}
                             description={card.description}
+                            width={controls.cardWidth}
+                            height={controls.cardHeight}
+                            depth={controls.cardDepth}
                         />
                     )
                 })}
@@ -366,6 +320,38 @@ function ThreeScene() {
 // ================================
 
 export default function App() {
+    // Leva controls with proper typing
+    const controls = useControls({
+        // Background section
+        Background: folder(
+            {
+                bgColor: { value: "#1a1a2e", label: "Color" },
+            },
+            { collapsed: true }
+        ),
+
+        // Spheres section
+        Spheres: folder(
+            {
+                sphereColor: { value: "#a5b4fc", label: "Color" },
+                sphereOpacity: { value: 0.4, min: 0.1, max: 1, step: 0.05, label: "Opacity" },
+                sphereCount: { value: 100, min: 10, max: 500, step: 1, label: "Count" },
+                sphereMinSize: { value: 0.2, min: 0.1, max: 1, step: 0.1, label: "Min Size" },
+                sphereMaxSize: { value: 0.8, min: 0.2, max: 2, step: 0.1, label: "Max Size" },
+            },
+            { collapsed: true }
+        ),
+
+        // Cards section
+        Cards: folder(
+            {
+                cardWidth: { value: 2.5, min: 1, max: 5, step: 0.1, label: "Width" },
+                cardHeight: { value: 3.5, min: 1, max: 5, step: 0.1, label: "Height" },
+                cardDepth: { value: 0.5, min: 0.1, max: 1, step: 0.1, label: "Depth" },
+            },
+            { collapsed: false }
+        ),
+    }) as unknown as Controls
     const { width, height } = useWindowSize()
     const cameraRef = useRef<THREE.PerspectiveCamera>(null)
 
@@ -413,14 +399,14 @@ export default function App() {
                     width: "100%",
                     height: "100%",
                     display: "block",
-                    backgroundColor: "white",
+                    backgroundColor: controls.bgColor,
                 }}
                 camera={cameraConfig}
                 onCreated={({ camera }) => {
                     // @ts-ignore
                     cameraRef.current = camera
                 }}>
-                <ThreeScene />
+                <ThreeScene controls={controls} />
             </Canvas>
         </div>
     )
