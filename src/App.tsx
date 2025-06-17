@@ -1,13 +1,10 @@
-import {
-    Grid,
-    OrbitControls,
-    Sphere,
-} from "@react-three/drei"
+import { Environment, Grid, OrbitControls, Sphere } from "@react-three/drei"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { folder, useControls } from "leva"
 import { useEffect, useMemo, useRef, useState } from "react"
 import * as THREE from "three"
 import "./App.css"
+import { cards } from './cardData'
 
 // ================================
 // Custom Hooks
@@ -80,7 +77,7 @@ const ScatteredSpheres = ({
                         transparent={true}
                         opacity={opacity}
                         roughness={0.7}
-                        metalness={0.3}
+                        metalness={0.1}
                     />
                 </Sphere>
             ))}
@@ -120,67 +117,13 @@ interface Controls {
 
 function ThreeScene({ controls }: { controls: Controls }) {
     // Destructure only the controls we need
-    const {
-        cardWidth,
-        cardHeight,
-        cardDepth,
-    } = controls
+    const { cardWidth, cardHeight, cardDepth } = controls
     const [targetRotation, setTargetRotation] = useState(0)
     const [currentRotation, setCurrentRotation] = useState(0)
     const groupRef = useRef<THREE.Group>(null)
     const scrollTimeout = useRef<number | null>(null) // Using number | null type for setTimeout return value
 
     // Card data with new color scheme
-    const cards = [
-        {
-            id: 1,
-            color: "#FF2D91",  // Pink/Magenta
-            hoverColor: "#FF6BB5", // Lighter Pink
-            title: "Project One",
-            description:
-                "A cutting-edge web application built with modern technologies to solve real-world problems.",
-        },
-        {
-            id: 2,
-            color: "#9D4EDD",  // Purple
-            hoverColor: "#B77DFF", // Lighter Purple
-            title: "Project Two",
-            description:
-                "An interactive data visualization platform that makes complex data easy to understand.",
-        },
-        {
-            id: 3,
-            color: "#7D26CD",  // Deep Purple
-            hoverColor: "#9B51E0", // Lighter Deep Purple
-            title: "Project Three",
-            description:
-                "Mobile-first responsive design that works seamlessly across all devices and screen sizes.",
-        },
-        {
-            id: 4,
-            color: "#1E90FF",  // Blue
-            hoverColor: "#4DABFF", // Lighter Blue
-            title: "Project Four",
-            description:
-                "A full-stack application with real-time updates and modern authentication.",
-        },
-        {
-            id: 5,
-            color: "#FF2D91",  // Pink/Magenta
-            hoverColor: "#FF6BB5", // Lighter Pink
-            title: "Project Five",
-            description:
-                "An e-commerce platform with secure payment processing and inventory management.",
-        },
-        {
-            id: 6,
-            color: "#9D4EDD",  // Purple
-            hoverColor: "#B77DFF", // Lighter Purple
-            title: "Project Six",
-            description:
-                "A social media dashboard with analytics and user engagement metrics.",
-        },
-    ]
 
     // Handle scroll for card rotation
     useEffect(() => {
@@ -246,9 +189,13 @@ function ThreeScene({ controls }: { controls: Controls }) {
 
     return (
         <>
-            <ambientLight intensity={0.5} />
+            <ambientLight intensity={1} />
             <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
-            <pointLight position={[0, 5, 5]} intensity={0.5} />
+            <pointLight position={[0, 5, 5]} intensity={1} />
+            <hemisphereLight
+                args={["#ffffff", "#0000ff", 0.3]} // Sky color, ground color, intensity
+                position={[0, 20, 0]}
+            />
 
             {/* Grid Helper */}
             <Grid
@@ -402,6 +349,7 @@ export default function App() {
                     // @ts-ignore
                     cameraRef.current = camera
                 }}>
+                <Environment preset="city" />
                 <ThreeScene controls={controls} />
             </Canvas>
         </div>
