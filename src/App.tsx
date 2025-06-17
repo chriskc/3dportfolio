@@ -1,10 +1,10 @@
-import { Environment, Grid, OrbitControls, Sphere } from "@react-three/drei"
+import { Environment, Grid, OrbitControls } from "@react-three/drei"
 import { Canvas, useFrame } from "@react-three/fiber"
 import { folder, useControls } from "leva"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import "./App.css"
-import { cards } from './cardData'
+import { cards } from "./cardData"
 
 // ================================
 // Custom Hooks
@@ -34,56 +34,7 @@ function useWindowSize() {
     return dimensions
 }
 
-// ================================
-// Scattered Spheres
-// ================================
-
-interface ScatteredSpheresProps {
-    count?: number
-    minRadius?: number
-    maxRadius?: number
-    minSize?: number
-    maxSize?: number
-    color?: string
-    opacity?: number
-}
-
-const ScatteredSpheres = ({
-    count = 50,
-    minRadius = 8,
-    maxRadius = 15,
-    minSize = 0.1,
-    maxSize = 0.5,
-    color = "#ffffff",
-    opacity = 0.6,
-}: ScatteredSpheresProps) => {
-    const spheres = useMemo(() => {
-        return Array.from({ length: count }, () => ({
-            position: [
-                (Math.random() - 0.5) * 2 * maxRadius,
-                (Math.random() - 0.5) * 10, // Vertical spread
-                (Math.random() - 0.5) * 2 * maxRadius,
-            ],
-            size: minSize + Math.random() * (maxSize - minSize),
-        }))
-    }, [count, minRadius, maxRadius, minSize, maxSize])
-
-    return (
-        <group>
-            {spheres.map((sphere: any, i: number) => (
-                <Sphere key={i} args={[sphere.size, 16, 16]} position={sphere.position}>
-                    <meshStandardMaterial
-                        color={color}
-                        transparent={true}
-                        opacity={opacity}
-                        roughness={0.7}
-                        metalness={0.1}
-                    />
-                </Sphere>
-            ))}
-        </group>
-    )
-}
+import { ScatteredSpheres, sphereControls } from "./components/BackgroundElements"
 
 // ================================
 // 3D Components
@@ -94,10 +45,6 @@ import { Card } from "./components/Card"
 // Scene Setup
 // ================================
 
-/**
- * Main 3D scene component containing all 3D elements
- */
-// Easing function for smooth animation
 function easeOutQuart(x: number): number {
     return 1 - Math.pow(1 - x, 4)
 }
@@ -115,7 +62,7 @@ interface Controls {
     cardDepth: number
 }
 
-function ThreeScene({ controls }: { controls: Controls }) {
+function Scene({ controls }: { controls: Controls }) {
     // Destructure only the controls we need
     const { cardWidth, cardHeight, cardDepth } = controls
     const [targetRotation, setTargetRotation] = useState(0)
@@ -263,36 +210,26 @@ function ThreeScene({ controls }: { controls: Controls }) {
 // ================================
 
 export default function App() {
-    // Leva controls with proper typing
     const controls = useControls({
         // Background section
         Background: folder(
             {
-                bgColor: { value: "#1a1a2e", label: "Color" },
+                bgColor: { value: "#ffffff", label: "Color" },
             },
             { collapsed: true }
         ),
 
         // Spheres section
-        Spheres: folder(
-            {
-                sphereColor: { value: "#a5b4fc", label: "Color" },
-                sphereOpacity: { value: 0.4, min: 0.1, max: 1, step: 0.05, label: "Opacity" },
-                sphereCount: { value: 100, min: 10, max: 500, step: 1, label: "Count" },
-                sphereMinSize: { value: 0.2, min: 0.1, max: 1, step: 0.1, label: "Min Size" },
-                sphereMaxSize: { value: 0.8, min: 0.2, max: 2, step: 0.1, label: "Max Size" },
-            },
-            { collapsed: true }
-        ),
+        Spheres: folder(sphereControls, { collapsed: true }),
 
         // Cards section
         Cards: folder(
             {
-                cardWidth: { value: 2.5, min: 1, max: 5, step: 0.1, label: "Width" },
-                cardHeight: { value: 3.5, min: 1, max: 5, step: 0.1, label: "Height" },
-                cardDepth: { value: 0.5, min: 0.1, max: 1, step: 0.1, label: "Depth" },
+                cardWidth: { value: 5, min: 1, max: 5, step: 0.1, label: "Width" },
+                cardHeight: { value: 5, min: 1, max: 5, step: 0.1, label: "Height" },
+                cardDepth: { value: 0.1, min: 0.1, max: 1, step: 0.1, label: "Depth" },
             },
-            { collapsed: false }
+            { collapsed: true }
         ),
     }) as unknown as Controls
     const { width, height } = useWindowSize()
@@ -310,7 +247,7 @@ export default function App() {
     // Camera configuration - positioned to view the cards
     const cameraConfig = {
         position: [0, 0, 0] as [number, number, number],
-        fov: 50,
+        fov: 55,
         aspect: width / height,
         near: 0.1,
         far: 1000,
@@ -334,7 +271,6 @@ export default function App() {
                 width: "100vw",
                 height: "100vh",
                 overflow: "hidden",
-                cursor: "grab",
             }}>
             <Canvas
                 gl={{ antialias: true }}
@@ -346,11 +282,10 @@ export default function App() {
                 }}
                 camera={cameraConfig}
                 onCreated={({ camera }) => {
-                    // @ts-ignore
                     cameraRef.current = camera
                 }}>
                 <Environment preset="city" />
-                <ThreeScene controls={controls} />
+                <Scene controls={controls} />
             </Canvas>
         </div>
     )
