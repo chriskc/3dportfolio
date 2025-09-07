@@ -36,18 +36,23 @@ export function Card({
     const ref = useRef<THREE.Mesh>(null)
 
     const materialProps = useControls("Material", {
-        thickness: { value: 0.2, min: 0, max: 10, step: 0.01 },
-        roughness: { value: 0.0, min: 0, max: 1, step: 0.01 },
-        transmission: { value: 1.0, min: 0, max: 1, step: 0.01 },
-        ior: { value: 1.2, min: 1, max: 2.33, step: 0.01 },
+        thickness: { value: 0.3, min: 0, max: 10, step: 0.01 },
+        roughness: { value: 0.28, min: 0, max: 1, step: 0.01 },
+        transmission: { value: 0.95, min: 0, max: 1, step: 0.01 },
+        ior: { value: 1.5, min: 1, max: 2.33, step: 0.01 },
         chromaticAberration: { value: 0.02, min: 0, max: 1, step: 0.01 },
-        anisotropy: { value: 0.2, min: 0, max: 1, step: 0.01 },
-        distortion: { value: 0.05, min: 0, max: 1, step: 0.01 },
-        distortionScale: { value: 0.1, min: 0, max: 1, step: 0.01 },
-        temporalDistortion: { value: 0.1, min: 0, max: 1, step: 0.01 },
+        anisotropy: { value: 0.1, min: 0, max: 1, step: 0.01 },
+        distortion: { value: 0.1, min: 0, max: 1, step: 0.01 },
+        distortionScale: { value: 0.2, min: 0, max: 1, step: 0.01 },
+        temporalDistortion: { value: 0.05, min: 0, max: 1, step: 0.01 },
+        clearcoat: { value: 0.3, min: 0, max: 1, step: 0.01 },
+        attenuationDistance: { value: 0.5, min: 0, max: 10, step: 0.01 },
+        attenuationColor: { value: "#a9c5db" },
+        opacity: { value: 0.9, min: 0, max: 1, step: 0.01 },
+        transparent: { value: true },
         color: { value: hovered ? hoverColor : color },
         backside: { value: true },
-        backsideThickness: { value: 0.3 },
+        backsideThickness: { value: 0.2, min: 0, max: 1, step: 0.01 },
         backsideColor: { value: hovered ? hoverColor : color },
     })
 
