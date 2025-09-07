@@ -41,7 +41,7 @@ interface RisographEffectProps {
 
 export const RisographEffect = forwardRef<TestEffectImpl, RisographEffectProps>(
     ({ grainIntensity = 0.15, grainScale = 300.0 }, ref) => {
-        const effectRef = useRef<TestEffectImpl>()
+        const effectRef = useRef<TestEffectImpl>(null)
 
         useFrame((_, delta) => {
             if (effectRef.current) {

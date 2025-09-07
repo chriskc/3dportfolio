@@ -257,9 +257,8 @@ function Scene({ controls }: { controls: Controls }) {
 // Main App Component
 // ================================
 
-export default function App() {
-    // State to manage control values for download/upload
-    const [controlValues, setControlValues] = useState<Partial<Controls>>({})
+export default function App() {    // State to manage control values for download/upload
+    const [, setControlValues] = useState<Partial<Controls>>({})
 
     const controls = useControls({
         // Dev Mode section
