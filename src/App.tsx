@@ -60,20 +60,23 @@ interface Controls {
     cardWidth: number
     cardHeight: number
     cardDepth: number
+    devMode: boolean
+    lockCamera: boolean
 }
 
 function Scene({ controls }: { controls: Controls }) {
     // Destructure only the controls we need
-    const { cardWidth, cardHeight, cardDepth } = controls
+    const { cardWidth, cardHeight, cardDepth, devMode, lockCamera } = controls
     const [targetRotation, setTargetRotation] = useState(0)
     const [currentRotation, setCurrentRotation] = useState(0)
     const groupRef = useRef<THREE.Group>(null)
     const scrollTimeout = useRef<number | null>(null) // Using number | null type for setTimeout return value
 
-    // Card data with new color scheme
-
-    // Handle scroll for card rotation
+    // Card data with new color scheme    // Handle scroll for card rotation
     useEffect(() => {
+        // Only handle scroll for card rotation if not in dev mode
+        if (devMode) return
+
         const handleScroll = (e: WheelEvent) => {
             e.preventDefault()
 
@@ -103,7 +106,7 @@ function Scene({ controls }: { controls: Controls }) {
                 scrollTimeout.current = null
             }
         }
-    }, [cards.length])
+    }, [devMode])
 
     // Smooth animation for rotation
     useFrame((_, delta) => {
@@ -127,12 +130,8 @@ function Scene({ controls }: { controls: Controls }) {
             // Apply the rotation to the group
             groupRef.current.rotation.y = newRotation
         }
-    })
-
-    // Calculate positions in a circle with proper spacing
+    }) // Calculate positions in a circle with proper spacing
     const baseRadius = 5
-    const radius = baseRadius
-    const angleOffset = 0
 
     return (
         <>
@@ -143,7 +142,6 @@ function Scene({ controls }: { controls: Controls }) {
                 args={["#ffffff", "#0000ff", 0.3]} // Sky color, ground color, intensity
                 position={[0, 20, 0]}
             />
-
             {/* Grid Helper */}
             <Grid
                 position={[0, 0, 0]}
@@ -157,7 +155,6 @@ function Scene({ controls }: { controls: Controls }) {
                 fadeDistance={30}
                 fadeStrength={1}
             />
-
             {/* Background spheres */}
             <ScatteredSpheres
                 count={controls.sphereCount}
@@ -168,7 +165,6 @@ function Scene({ controls }: { controls: Controls }) {
                 color={controls.sphereColor}
                 opacity={controls.sphereOpacity}
             />
-
             <group ref={groupRef} position={[0, 0, -5]}>
                 {cards.map((card, index) => {
                     // Distribute cards in a circle
@@ -193,13 +189,14 @@ function Scene({ controls }: { controls: Controls }) {
                         />
                     )
                 })}
-            </group>
-
+            </group>{" "}
             <OrbitControls
-                enablePan={true}
-                enableZoom={true}
-                enableRotate={true}
+                enablePan={devMode}
+                enableZoom={devMode}
+                enableRotate={devMode}
                 enableDamping={true}
+                enabled={!lockCamera}
+                target={devMode ? undefined : [0, 0, -5]}
             />
         </>
     )
@@ -211,6 +208,15 @@ function Scene({ controls }: { controls: Controls }) {
 
 export default function App() {
     const controls = useControls({
+        // Dev Mode section
+        "Dev Mode": folder(
+            {
+                devMode: { value: false, label: "Enable Dev Mode" },
+                lockCamera: { value: false, label: "Lock Camera" },
+            },
+            { collapsed: false }
+        ),
+
         // Background section
         Background: folder(
             {
@@ -242,20 +248,20 @@ export default function App() {
         cameraRef.current.updateProjectionMatrix()
     }, [width, height])
 
-    console.log(cameraRef)
-
-    // Camera configuration - positioned to view the cards
+    console.log(cameraRef) // Camera configuration - positioned to view the cards
     const cameraConfig = {
-        position: [0, 0, 0] as [number, number, number],
+        position: controls.devMode
+            ? ([0, 5, 10] as [number, number, number])
+            : ([0, 0, 0] as [number, number, number]),
         fov: 55,
         aspect: width / height,
         near: 0.1,
         far: 1000,
         up: [0, 1, 0] as [number, number, number],
-    }
-
-    // Prevent default scroll behavior
+    } // Prevent default scroll behavior when not in dev mode
     useEffect(() => {
+        if (controls.devMode) return // Allow normal scroll behavior in dev mode
+
         const preventDefault = (e: WheelEvent) => {
             if (e.ctrlKey) return // Allow zoom with ctrl+scroll
             e.preventDefault()
@@ -263,7 +269,7 @@ export default function App() {
 
         window.addEventListener("wheel", preventDefault, { passive: false })
         return () => window.removeEventListener("wheel", preventDefault)
-    }, [])
+    }, [controls.devMode])
 
     return (
         <div
