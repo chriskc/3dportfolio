@@ -1,10 +1,12 @@
 import { Environment, Grid, OrbitControls } from "@react-three/drei"
 import { Canvas, useFrame } from "@react-three/fiber"
+import { EffectComposer } from '@react-three/postprocessing'
 import { folder, useControls } from "leva"
 import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import "./App.css"
 import { cards } from "./cardData"
+import { RisographEffect } from "./effects/RisographEffect"
 
 // ================================
 // Custom Hooks
@@ -62,6 +64,7 @@ interface Controls {
     cardDepth: number
     devMode: boolean
     lockCamera: boolean
+    enableEffect: boolean
 }
 
 function Scene({ controls }: { controls: Controls }) {
@@ -128,10 +131,8 @@ function Scene({ controls }: { controls: Controls }) {
             setCurrentRotation(newRotation)
 
             // Apply the rotation to the group
-            groupRef.current.rotation.y = newRotation
-        }
+            groupRef.current.rotation.y = newRotation        }
     }) // Calculate positions in a circle with proper spacing
-    const baseRadius = 5
 
     return (
         <>
@@ -226,9 +227,7 @@ export default function App() {
         ),
 
         // Spheres section
-        Spheres: folder(sphereControls, { collapsed: true }),
-
-        // Cards section
+        Spheres: folder(sphereControls, { collapsed: true }),        // Cards section
         Cards: folder(
             {
                 cardWidth: { value: 5, min: 1, max: 5, step: 0.1, label: "Width" },
@@ -236,6 +235,14 @@ export default function App() {
                 cardDepth: { value: 0.1, min: 0.1, max: 1, step: 0.1, label: "Depth" },
             },
             { collapsed: true }
+        ),
+
+        // Test Effect section
+        "Test Effect": folder(
+            {
+                enableEffect: { value: false, label: "Enable Test Effect" },
+            },
+            { collapsed: false }
         ),
     }) as unknown as Controls
     const { width, height } = useWindowSize()
@@ -286,12 +293,18 @@ export default function App() {
                     display: "block",
                     backgroundColor: controls.bgColor,
                 }}
-                camera={cameraConfig}
-                onCreated={({ camera }) => {
-                    cameraRef.current = camera
+                camera={cameraConfig}                onCreated={({ camera }) => {
+                    cameraRef.current = camera as THREE.PerspectiveCamera
                 }}>
                 <Environment preset="city" />
                 <Scene controls={controls} />
+                
+                {/* Test the post-processing effect */}
+                {controls.enableEffect && (
+                    <EffectComposer>
+                        <RisographEffect />
+                    </EffectComposer>
+                )}
             </Canvas>
         </div>
     )
