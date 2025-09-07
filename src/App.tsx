@@ -1,12 +1,59 @@
 import { Environment, Grid, OrbitControls } from "@react-three/drei"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { EffectComposer } from '@react-three/postprocessing'
-import { folder, useControls } from "leva"
+import { EffectComposer } from "@react-three/postprocessing"
+import { button, folder, useControls } from "leva"
 import { useEffect, useRef, useState } from "react"
 import * as THREE from "three"
 import "./App.css"
 import { cards } from "./cardData"
+// import { RisographEffect } from "./effects/RisographEffect"
 import { RisographEffect } from "./effects/RisographEffect"
+
+// ================================
+// Settings Management Functions
+// ================================
+
+// Function to download settings as JSON
+const downloadSettings = (settings: Controls) => {
+    const dataStr = JSON.stringify(settings, null, 2)
+    const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr)
+
+    const exportFileDefaultName = `portfolio-settings-${
+        new Date().toISOString().split("T")[0]
+    }.json`
+
+    const linkElement = document.createElement("a")
+    linkElement.setAttribute("href", dataUri)
+    linkElement.setAttribute("download", exportFileDefaultName)
+    linkElement.click()
+}
+
+// Function to upload and apply settings from JSON
+const uploadSettings = (onSettingsLoad: (settings: Partial<Controls>) => void) => {
+    const input = document.createElement("input")
+    input.type = "file"
+    input.accept = ".json"
+
+    input.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0]
+        if (file) {
+            const reader = new FileReader()
+            reader.onload = (event) => {
+                try {
+                    const settings = JSON.parse(event.target?.result as string)
+                    onSettingsLoad(settings)
+                    console.log("Settings loaded successfully")
+                } catch (error) {
+                    console.error("Error loading settings:", error)
+                    alert("Error loading settings file. Please check the file format.")
+                }
+            }
+            reader.readAsText(file)
+        }
+    }
+
+    input.click()
+}
 
 // ================================
 // Custom Hooks
@@ -65,6 +112,8 @@ interface Controls {
     devMode: boolean
     lockCamera: boolean
     enableEffect: boolean
+    grainIntensity: number
+    grainScale: number
 }
 
 function Scene({ controls }: { controls: Controls }) {
@@ -131,7 +180,8 @@ function Scene({ controls }: { controls: Controls }) {
             setCurrentRotation(newRotation)
 
             // Apply the rotation to the group
-            groupRef.current.rotation.y = newRotation        }
+            groupRef.current.rotation.y = newRotation
+        }
     }) // Calculate positions in a circle with proper spacing
 
     return (
@@ -208,6 +258,9 @@ function Scene({ controls }: { controls: Controls }) {
 // ================================
 
 export default function App() {
+    // State to manage control values for download/upload
+    const [controlValues, setControlValues] = useState<Partial<Controls>>({})
+
     const controls = useControls({
         // Dev Mode section
         "Dev Mode": folder(
@@ -227,7 +280,7 @@ export default function App() {
         ),
 
         // Spheres section
-        Spheres: folder(sphereControls, { collapsed: true }),        // Cards section
+        Spheres: folder(sphereControls, { collapsed: true }), // Cards section
         Cards: folder(
             {
                 cardWidth: { value: 5, min: 1, max: 5, step: 0.1, label: "Width" },
@@ -235,14 +288,37 @@ export default function App() {
                 cardDepth: { value: 0.1, min: 0.1, max: 1, step: 0.1, label: "Depth" },
             },
             { collapsed: true }
-        ),
-
-        // Test Effect section
-        "Test Effect": folder(
+        ), // Grain Effect section
+        "Grain Effect": folder(
             {
-                enableEffect: { value: false, label: "Enable Test Effect" },
+                enableEffect: { value: false, label: "Enable Effect" },
+                grainIntensity: {
+                    value: 0.15,
+                    min: 0,
+                    max: 0.5,
+                    step: 0.01,
+                    label: "Grain Intensity",
+                },
+                grainScale: { value: 300, min: 50, max: 1000, step: 10, label: "Grain Scale" },
             },
             { collapsed: false }
+        ),
+
+        // Settings Management section
+        Settings: folder(
+            {
+                "Download Settings": button(() => {
+                    downloadSettings(controls)
+                }),
+                "Upload Settings": button(() => {
+                    uploadSettings((newSettings) => {
+                        setControlValues(newSettings)
+                        // Force refresh by updating each control value
+                        window.location.reload()
+                    })
+                }),
+            },
+            { collapsed: true }
         ),
     }) as unknown as Controls
     const { width, height } = useWindowSize()
@@ -293,16 +369,18 @@ export default function App() {
                     display: "block",
                     backgroundColor: controls.bgColor,
                 }}
-                camera={cameraConfig}                onCreated={({ camera }) => {
+                camera={cameraConfig}
+                onCreated={({ camera }) => {
                     cameraRef.current = camera as THREE.PerspectiveCamera
                 }}>
                 <Environment preset="city" />
-                <Scene controls={controls} />
-                
-                {/* Test the post-processing effect */}
+                <Scene controls={controls} /> {/* Test the post-processing effect */}
                 {controls.enableEffect && (
                     <EffectComposer>
-                        <RisographEffect />
+                        <RisographEffect
+                            grainIntensity={controls.grainIntensity}
+                            grainScale={controls.grainScale}
+                        />
                     </EffectComposer>
                 )}
             </Canvas>
